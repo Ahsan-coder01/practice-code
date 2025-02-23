@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register | CollabHub</title>
+    <link rel="stylesheet" href="stylesregister.css">
+    <style>
+        /* Reuse login styles */
+        .password-strength {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">CollabHub</a>
+        </nav>
+    </header>
+
+    <div class="auth-container">
+        <h1>Create Account</h1>
+        <div id="responseMessage" class="response-message"></div>
+        
+        <form class="auth-form" id="registerForm">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="registerEmail" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="registerPassword" required 
+                       oninput="checkPasswordStrength(this.value)">
+                <div class="password-strength" id="passwordStrength"></div>
+            </div>
+
+            <button type="submit" class="cta-button">Create Account</button>
+        </form>
+
+        <p style="margin-top: 1rem;">
+            Already have an account? <a href="login.html">Sign in</a>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const responseDiv = document.getElementById('responseMessage');
+
+            if (!validateEmail(email)) {
+                showResponse('Please enter a valid email address', 'error');
+                return;
+            }
+
+            if (password.length < 8) {
+                showResponse('Password must be at least 8 characters', 'error');
+                return;
+            }
+
+            showResponse('Creating account...', 'info');
+
+            try {
+                const response = await mockAPICall('/register', { email, password });
+                
+                if (response.success) {
+                    showResponse('Account created successfully! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    showResponse(response.message || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showResponse('Registration error. Please try again.', 'error');
+            }
+        });
+
+        function checkPasswordStrength(password) {
+            const strengthDiv = document.getElementById('passwordStrength');
+            const strength = calculatePasswordStrength(password);
+            
+            strengthDiv.textContent = `Strength: ${strength.label}`;
+            strengthDiv.style.color = strength.color;
+        }
+
+        function calculatePasswordStrength(password) {
+            const strength = password.length > 12 ? 3 : 
+                           password.length > 8 ? 2 : 1;
+            
+            return {
+                label: ['Weak', 'Moderate', 'Strong'][strength - 1],
+                color: ['#dc3545', '#ffc107', '#28a745'][strength - 1]
+            };
+        }
+
+        // Reuse validation and response functions from login
+        const validateEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        const showResponse = (message, type) => {
+            const responseDiv = document.getElementById('responseMessage');
+            responseDiv.textContent = message;
+            responseDiv.className = `response-message ${type}`;
+            responseDiv.style.display = 'block';
+        };
+
+        async function mockAPICall(endpoint, data) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    if (data.email.includes('@')) {
+                        resolve({ success: true });
+                    } else {
+                        resolve({
+                            success: false,
+                            message: 'Registration failed - invalid email'
+                        });
+                    }
+                }, 1000);
+            });
+        }
+    </script>
+</body>
+</html>
