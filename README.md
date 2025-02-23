@@ -1,2 +1,1 @@
-# practice-code
-i am doing small projects while learning coding language
+create using tech to help others
